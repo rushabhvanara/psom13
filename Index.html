@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microgrid & BESS Renewable Energy Simulator</title>
+    <!-- Chart.js for real-time visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-solar: #f59e0b;
+            --accent-wind: #3b82f6;
+            --accent-load: #ef4444;
+            --accent-bess: #10b981;
+            --accent-grid: #8b5cf6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #38bdf8;
+        }
+
+        header p {
+            margin: 5px 0 0 0;
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls h3, .metrics h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            accent-color: #38bdf8;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.85; }
+        .btn-start { background-color: #10b981; color: white; }
+        .btn-pause { background-color: #f59e0b; color: white; }
+        .btn-reset { background-color: #ef4444; color: white; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background-color: #0f172a;
+            border-left: 4px solid #38bdf8;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .metric-card.solar { border-color: var(--accent-solar); }
+        .metric-card.wind { border-color: var(--accent-wind); }
+        .metric-card.load { border-color: var(--accent-load); }
+        .metric-card.bess { border-color: var(--accent-bess); }
+        .metric-card.grid { border-color: var(--accent-grid); }
+
+        .metric-card span {
+            display: block;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .metric-card div {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 280px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Microgrid & BESS Energy Simulator</h1>
+        <p>Interactive Study of Renewable Generation, Battery Storage, and Load Balancing</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Left Sidebar: Controls -->
+        <div class="card controls">
+            <h3>System Parameters</h3>
+            
+            <div class="control-group">
+                <label>Solar Capacity: <span id="valSolarCap">100 kW</span></label>
+                <input type="range" id="solarCap" min="0" max="300" value="100">
+            </div>
+
+            <div class="control-group">
+                <label>Wind Capacity: <span id="valWindCap">80 kW</span></label>
+                <input type="range" id="windCap" min="0" max="300" value="80">
+            </div>
+
+            <div class="control-group">
+                <label>Peak Load: <span id="valPeakLoad">150 kW</span></label>
+                <input type="range" id="peakLoad" min="50" max="400" value="150">
+            </div>
+
+            <div class="control-group">
+                <label>BESS Capacity: <span id="valBessCap">200 kWh</span></label>
+                <input type="range" id="bessCap" min="50" max="500" value="200">
+            </div>
+
+            <div class="control-group">
+                <label>BESS Max Power: <span id="valBessMaxPower">50 kW</span></label>
+                <input type="range" id="bessMaxPower" min="10" max="150" value="50">
+            </div>
+
+            <div class="control-group">
+                <label>Simulation Speed: <span id="valSpeed">1.0x</span></label>
+                <input type="range" id="simSpeed" min="0.2" max="3.0" step="0.2" value="1.0">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-start" id="btnStart">Start</button>
+                <button class="btn-pause" id="btnPause">Pause</button>
+                <button class="btn-reset" id="btnReset">Reset</button>
+            </div>
+        </div>
+
+        <!-- Right Side: Visualization & Metrics -->
+        <div class="main-content">
+            <!-- Numerical Dashboard -->
+            <div class="metrics-grid">
+                <div class="metric-card solar">
+                    <span>Solar Output</span>
+                    <div id="mSolar">0.0 kW</div>
+                </div>
+                <div class="metric-card wind">
+                    <span>Wind Output</span>
+                    <div id="mWind">0.0 kW</div>
+                </div>
+                <div class="metric-card load">
+                    <span>Load Demand</span>
+                    <div id="mLoad">0.0 kW</div>
+                </div>
+                <div class="metric-card bess">
+                    <span>BESS Power / SoC</span>
+                    <div id="mBess">0.0 kW (50%)</div>
+                </div>
+                <div class="metric-card grid">
+                    <span>Grid Import/Export</span>
+                    <div id="mGrid">0.0 kW</div>
+                </div>
+            </div>
+
+            <!-- Plots -->
+            <div class="charts-container">
+                <div class="card chart-box">
+                    <canvas id="powerChart"></canvas>
+                </div>
+                <div class="card chart-box">
+                    <canvas id="socChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulation Variables
+        let currentHour = 0; // 0 to 24 hours
+        let isRunning = false;
+        let timer = null;
+
+        // BESS Dynamic State
+        let bessSoC = 50.0; // % State of Charge
+        const minSoC = 10.0;
+        const maxSoC = 90.0;
+        const chargeEff = 0.92;
+        const dischargeEff = 0.92;
+
+        // UI Inputs
+        const inputs = {
+            solarCap: document.getElementById('solarCap'),
+            windCap: document.getElementById('windCap'),
+            peakLoad: document.getElementById('peakLoad'),
+            bessCap: document.getElementById('bessCap'),
+            bessMaxPower: document.getElementById('bessMaxPower'),
+            simSpeed: document.getElementById('simSpeed')
+        };
+
+        // UI Displays
+        const displays = {
+            solarCap: document.getElementById('valSolarCap'),
+            windCap: document.getElementById('valWindCap'),
+            peakLoad: document.getElementById('valPeakLoad'),
+            bessCap: document.getElementById('valBessCap'),
+            bessMaxPower: document.getElementById('valBessMaxPower'),
+            simSpeed: document.getElementById('valSpeed'),
+            mSolar: document.getElementById('mSolar'),
+            mWind: document.getElementById('mWind'),
+            mLoad: document.getElementById('mLoad'),
+            mBess: document.getElementById('mBess'),
+            mGrid: document.getElementById('mGrid')
+        };
+
+        // Bind Range Inputs to UI Text
+        Object.keys(inputs).forEach(key => {
+            inputs[key].addEventListener('input', () => {
+                let unit = key.includes('Cap') || key.includes('Load') ? (key === 'bessCap' ? ' kWh' : ' kW') : (key === 'bessMaxPower' ? ' kW' : 'x');
+                displays[key].innerText = inputs[key].value + unit;
+            });
+        });
+
+        // Synthetic Profile Generators (Functions of Time of Day)
+        function getSolarPower(h, maxCap) {
+            if (h < 6 || h > 18) return 0;
+            let rad = Math.sin(Math.PI * (h - 6) / 12);
+            let cloudNoise = 0.85 + 0.3 * Math.sin(h * 3.5); // fluctuates slightly
+            return Math.max(0, rad * cloudNoise * maxCap);
+        }
+
+        function getWindPower(h, maxCap) {
+            // Wind profile with diurnal variations
+            let base = 0.4 + 0.3 * Math.cos((h - 3) * Math.PI / 12);
+            let gust = 0.15 * Math.sin(h * 2.1);
+            return Math.min(maxCap, Math.max(0, (base + gust) * maxCap));
+        }
+
+        function getLoadDemand(h, peakKw) {
+            // Typical residential/commercial double-peak curve (Morning & Evening)
+            let morningPeak = Math.exp(-Math.pow(h - 9, 2) / 8);
+            let eveningPeak = Math.exp(-Math.pow(h - 19, 2) / 10);
+            let baseLoad = 0.3;
+            let profile = baseLoad + 0.5 * morningPeak + 0.7 * eveningPeak;
+            return Math.min(peakKw, profile * peakKw);
+        }
+
+        // Initialize Chart.js Instances
+        const ctxPower = document.getElementById('powerChart').getContext('2d');
+        const ctxSoC = document.getElementById('socChart').getContext('2d');
+
+        const powerChart = new Chart(ctxPower, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Solar Generation (kW)', borderColor: '#f59e0b', backgroundColor: '#f59e0b22', data: [], fill: true, tension: 0.3 },
+                    { label: 'Wind Generation (kW)', borderColor: '#3b82f6', backgroundColor: '#3b82f622', data: [], fill: true, tension: 0.3 },
+                    { label: 'Load Demand (kW)', borderColor: '#ef4444', borderWidth: 2, borderDash: [5, 5], data: [], fill: false, tension: 0.3 },
+                    { label: 'BESS Power (+Chg/-Dis) (kW)', borderColor: '#10b981', data: [], fill: false, tension: 0.3 },
+                    { label: 'Grid Power (+Imp/-Exp) (kW)', borderColor: '#8b5cf6', data: [], fill: false, tension: 0.3 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Microgrid Power Balance (24 Hours)', color: '#f8fafc' },
+                    legend: { labels: { color: '#94a3b8' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }, title: { display: true, text: 'Power (kW)', color: '#94a3b8' } }
+                }
+            }
+        });
+
+        const socChart = new Chart(ctxSoC, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'BESS State of Charge (%)', borderColor: '#10b981', backgroundColor: '#10b98133', data: [], fill: true, tension: 0.3 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Battery Storage State of Charge (SoC)', color: '#f8fafc' },
+                    legend: { labels: { color: '#94a3b8' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    y: { min: 0, max: 100, ticks: { color: '#94a3b8' }, grid: { color: '#334155' }, title: { display: true, text: 'SoC (%)', color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Step Simulation Forward by 0.25 Hours (15 Mins)
+        function stepSimulation() {
+            const dt = 0.25; // 15 mins step
+            const solarCap = parseFloat(inputs.solarCap.value);
+            const windCap = parseFloat(inputs.windCap.value);
+            const peakLoad = parseFloat(inputs.peakLoad.value);
+            const bessCap = parseFloat(inputs.bessCap.value);
+            const bessMaxPwr = parseFloat(inputs.bessMaxPower.value);
+
+            // Calculations
+            let pSolar = getSolarPower(currentHour, solarCap);
+            let pWind = getWindPower(currentHour, windCap);
+            let pLoad = getLoadDemand(currentHour, peakLoad);
+
+            let netPower = (pSolar + pWind) - pLoad; // Excess (+) or Deficit (-)
+            let pBess = 0; // + means charging, - means discharging
+            let pGrid = 0; // + means importing, - means exporting
+
+            // BESS Management Logic
+            if (netPower > 0) {
+                // Surplus generation -> Charge Battery first
+                let maxChargeRate = Math.min(bessMaxPwr, ((maxSoC - bessSoC) / 100 * bessCap) / (dt * chargeEff));
+                pBess = Math.min(netPower, maxChargeRate);
+                bessSoC += (pBess * dt * chargeEff) / bessCap * 100;
+
+                // Excess generation remaining after battery charging -> Export to Grid
+                pGrid = -(netPower - pBess); 
+            } else {
+                // Power Deficit -> Discharge Battery first
+                let deficit = Math.abs(netPower);
+                let maxDischargeRate = Math.min(bessMaxPwr, ((bessSoC - minSoC) / 100 * bessCap) * dischargeEff / dt);
+                pBess = -Math.min(deficit, maxDischargeRate);
+                bessSoC -= (Math.abs(pBess) * dt / dischargeEff) / bessCap * 100;
+
+                // Deficit remaining after battery discharge -> Import from Grid
+                pGrid = deficit - Math.abs(pBess);
+            }
+
+            // Clamp SoC to boundaries
+            bessSoC = Math.max(minSoC, Math.min(maxSoC, bessSoC));
+
+            // Formatting time label
+            let hours = Math.floor(currentHour);
+            let mins = Math.round((currentHour - hours) * 60);
+            let timeLabel = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+
+            // Update UI Metrics Cards
+            displays.mSolar.innerText = `${pSolar.toFixed(1)} kW`;
+            displays.mWind.innerText = `${pWind.toFixed(1)} kW`;
+            displays.mLoad.innerText = `${pLoad.toFixed(1)} kW`;
+            displays.mBess.innerText = `${pBess.toFixed(1)} kW (${bessSoC.toFixed(1)}%)`;
+            displays.mGrid.innerText = `${pGrid.toFixed(1)} kW ${pGrid >= 0 ? '(Import)' : '(Export)'}`;
+
+            // Update Charts
+            powerChart.data.labels.push(timeLabel);
+            powerChart.data.datasets[0].data.push(pSolar.toFixed(1));
+            powerChart.data.datasets[1].data.push(pWind.toFixed(1));
+            powerChart.data.datasets[2].data.push(pLoad.toFixed(1));
+            powerChart.data.datasets[3].data.push(pBess.toFixed(1));
+            powerChart.data.datasets[4].data.push(pGrid.toFixed(1));
+
+            socChart.data.labels.push(timeLabel);
+            socChart.data.datasets[0].data.push(bessSoC.toFixed(1));
+
+            // Prevent overcrowded charts (keep max 96 steps = 24 hrs)
+            if (powerChart.data.labels.length > 96) {
+                powerChart.data.labels.shift();
+                powerChart.data.datasets.forEach(d => d.data.shift());
+                socChart.data.labels.shift();
+                socChart.data.datasets[0].data.shift();
+            }
+
+            powerChart.update();
+            socChart.update();
+
+            // Increment time loop
+            currentHour = (currentHour + dt) % 24;
+        }
+
+        // Timer Control
+        function startSim() {
+            if (isRunning) return;
+            isRunning = true;
+            let speed = parseFloat(inputs.simSpeed.value);
+            let interval = 400 / speed;
+            timer = setInterval(() => {
+                stepSimulation();
+            }, interval);
+        }
+
+        function pauseSim() {
+            isRunning = false;
+            clearInterval(timer);
+        }
+
+        function resetSim() {
+            pauseSim();
+            currentHour = 0;
+            bessSoC = 50.0;
+            
+            powerChart.data.labels = [];
+            powerChart.data.datasets.forEach(d => d.data = []);
+            socChart.data.labels = [];
+            socChart.data.datasets[0].data = [];
+
+            powerChart.update();
+            socChart.update();
+
+            displays.mSolar.innerText = "0.0 kW";
+            displays.mWind.innerText = "0.0 kW";
+            displays.mLoad.innerText = "0.0 kW";
+            displays.mBess.innerText = "0.0 kW (50.0%)";
+            displays.mGrid.innerText = "0.0 kW";
+        }
+
+        // Attach Event Listeners
+        document.getElementById('btnStart').addEventListener('click', startSim);
+        document.getElementById('btnPause').addEventListener('click', pauseSim);
+        document.getElementById('btnReset').addEventListener('click', resetSim);
+
+        inputs.simSpeed.addEventListener('change', () => {
+            if (isRunning) {
+                pauseSim();
+                startSim();
+            }
+        });
+    </script>
+</body>
+<footer style="text-align: center;">
+    <p>© Rushabh D. Vanara | Department of Electrical Engineering, Government Polytechnic, Junagadh</p>
+</footer>
+</html>
