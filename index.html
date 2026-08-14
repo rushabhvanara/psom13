@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microgrid Simulation - Advanced Dashboard</title>
+    <!-- Chart.js and DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --solar: #f59e0b;
+            --wind: #10b981;
+            --battery: #8b5cf6;
+            --grid: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Top Navigation Link */
+        .header-nav {
+            padding: 1rem 2rem;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .home-link:hover { color: var(--primary); }
+
+        /* Main Layout */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2rem;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        h2 { 
+            margin-top: 0; 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            color: #64748b;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Sliders */
+        .control-group { margin-bottom: 1.25rem; }
+        .control-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+        .control-label { font-weight: 600; font-size: 0.85rem; }
+        .control-value { font-weight: bold; color: var(--primary); font-family: monospace; }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #cbd5e1;
+            border-radius: 5px;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        /* Table */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .summary-table th {
+            text-align: left;
+            padding: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid var(--border);
+        }
+
+        .summary-table td {
+            padding: 12px 10px;
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        .case-name { font-weight: bold; background: #f8fafc; }
+
+        /* Chart Area */
+        .chart-container { height: 400px; position: relative; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        footer p { margin: 5px 0; color: #64748b; font-size: 0.9rem; }
+        footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+        .heart { color: #e11d48; }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="header-nav">
+        <a href="https://rushabhvanara.github.io" class="home-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>rushabhvanara.github.io</span>
+        </a>
+    </nav>
+
+    <div class="container">
+        <!-- Sidebar Controls -->
+        <aside>
+            <header style="margin-bottom: 1.5rem;">
+                <h1>Microgrid Energy Flow Simulator</h1>
+                <p style="color: #64748b; font-size: 0.9rem;">Interactive Power Flow Analysis</p>
+            </header>
+
+            <div class="card">
+                <h2>System Parameters</h2>
+                <div class="control-group">
+                    <div class="control-header">
+                        <span class="control-label">Load Demand</span>
+                        <span class="control-value" id="lbl-load">700 kW</span>
+                    </div>
+                    <input type="range" id="input-load" min="100" max="1500" value="700" oninput="updateSim()">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <span class="control-label" style="color: var(--solar)">Solar PV Max</span>
+                        <span class="control-value" id="lbl-solar">200 kW</span>
+                    </div>
+                    <input type="range" id="input-solar" min="0" max="1000" value="200" oninput="updateSim()">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <span class="control-label" style="color: var(--wind)">Wind Turbine Max</span>
+                        <span class="control-value" id="lbl-wind">150 kW</span>
+                    </div>
+                    <input type="range" id="input-wind" min="0" max="1000" value="150" oninput="updateSim()">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-header">
+                        <span class="control-label" style="color: var(--battery)">Battery (BESS)</span>
+                        <span class="control-value" id="lbl-battery">100 kW</span>
+                    </div>
+                    <input type="range" id="input-battery" min="0" max="1000" value="100" oninput="updateSim()">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Display -->
+        <main>
+            <!-- 1. Numerical Summary (Top) -->
+            <div class="card">
+                <h2>1. Numerical Summary (Power in kW)</h2>
+                <div style="overflow-x: auto;">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th style="color:var(--grid)">Utility Grid</th>
+                                <th style="color:var(--solar)">Solar PV</th>
+                                <th style="color:var(--wind)">Wind Power</th>
+                                <th style="color:var(--battery)">BESS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Chart (Bottom) -->
+            <div class="card">
+                <h2>2. Comparative Power Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <p>Made with <span class="heart">❤</span> by <a href="https://rushabhvanara.github.io" target="_blank">Rushabh D. Vanara</a></p>
+        <p>Department of Electrical Engineering, Government Polytechnic, Junagadh</p>
+    </footer>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        let chart;
+
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Grid Only', 'Solar + Grid', 'Hybrid (S+W)', 'Full Microgrid'],
+                    datasets: [
+                        { label: 'Solar', data: [], backgroundColor: '#f59e0b' },
+                        { label: 'Wind', data: [], backgroundColor: '#10b981' },
+                        { label: 'Battery', data: [], backgroundColor: '#8b5cf6' },
+                        { label: 'Grid', data: [], backgroundColor: '#64748b' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, beginAtZero: true, title: { display: true, text: 'kW' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (value, context) => {
+                                return value > (document.getElementById('input-load').value * 0.1) 
+                                    ? context.dataset.label : null;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSim() {
+            const load = parseInt(document.getElementById('input-load').value);
+            const sCap = parseInt(document.getElementById('input-solar').value);
+            const wCap = parseInt(document.getElementById('input-wind').value);
+            const bCap = parseInt(document.getElementById('input-battery').value);
+
+            document.getElementById('lbl-load').innerText = load + " kW";
+            document.getElementById('lbl-solar').innerText = sCap + " kW";
+            document.getElementById('lbl-wind').innerText = wCap + " kW";
+            document.getElementById('lbl-battery').innerText = bCap + " kW";
+
+            // Calculation Logic
+            const scenarios = [
+                { s:0, w:0, b:0, g:load }, // Case 1
+                { s:Math.min(load, sCap), w:0, b:0, g:Math.max(0, load - Math.min(load, sCap)) }, // Case 2
+                { 
+                    s:Math.min(load, sCap), 
+                    w:Math.min(load - Math.min(load, sCap), wCap), 
+                    b:0, 
+                    g:Math.max(0, load - Math.min(load, sCap) - Math.min(load - Math.min(load, sCap), wCap)) 
+                }, // Case 3
+                {
+                    s:Math.min(load, sCap),
+                    w:Math.min(load - Math.min(load, sCap), wCap),
+                    b:Math.min(load - Math.min(load, sCap) - Math.min(load - Math.min(load, sCap), wCap), bCap),
+                    g:Math.max(0, load - Math.min(load, sCap) - Math.min(load - Math.min(load, sCap), wCap) - Math.min(load - Math.min(load, sCap) - Math.min(load - Math.min(load, sCap), wCap), bCap))
+                } // Case 4
+            ];
+
+            // Update Table
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = scenarios.map((d, i) => `
+                <tr>
+                    <td class="case-name">Case ${i+1}</td>
+                    <td>${d.g.toFixed(0)} kW</td>
+                    <td>${d.s.toFixed(0)} kW</td>
+                    <td>${d.w.toFixed(0)} kW</td>
+                    <td>${d.b.toFixed(0)} kW</td>
+                </tr>
+            `).join('');
+
+            // Update Chart
+            chart.data.datasets[0].data = scenarios.map(d => d.s);
+            chart.data.datasets[1].data = scenarios.map(d => d.w);
+            chart.data.datasets[2].data = scenarios.map(d => d.b);
+            chart.data.datasets[3].data = scenarios.map(d => d.g);
+            chart.update();
+        }
+
+        window.onload = () => {
+            initChart();
+            updateSim();
+        };
+    </script>
+</body>
+</html>
