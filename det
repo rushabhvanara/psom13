@@ -1,0 +1,4299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Virtual Lab | Renewable Energy Microgrid & Battery Energy Storage</title>
+
+<style>
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+:root{
+    --bg:#06111b;
+    --bg2:#091927;
+    --panel:#0b1a28;
+    --panel2:#0e2132;
+    --border:#284357;
+    --text:#e8f3f8;
+    --muted:#8da5b5;
+
+    --pv:#ffd34d;
+    --wind:#4da6ff;
+    --battery:#36df7d;
+    --grid:#ad82ff;
+    --load:#ff6262;
+    --cyan:#20d8ff;
+    --orange:#ff9d43;
+
+    --shadow:0 15px 40px rgba(0,0,0,.28);
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    margin:0;
+    background:
+        radial-gradient(circle at 15% 5%,rgba(32,216,255,.07),transparent 28%),
+        radial-gradient(circle at 85% 25%,rgba(54,223,125,.045),transparent 25%),
+        var(--bg);
+    color:var(--text);
+    font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+a{
+    color:inherit;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+header{
+    padding:26px 4vw 25px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#071826,#08131f);
+    position:relative;
+}
+
+.home-link{
+    position:absolute;
+    top:17px;
+    left:22px;
+    text-decoration:none;
+    font-size:12px;
+    color:var(--cyan);
+    border:1px solid #28566e;
+    background:#0a1d2c;
+    border-radius:7px;
+    padding:8px 14px;
+    transition:.2s;
+}
+
+.home-link:hover{
+    background:#10364d;
+}
+
+.header-inner{
+    width:min(1400px,94%);
+    margin:auto;
+    padding-top:24px;
+}
+
+.eyebrow{
+    color:var(--cyan);
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-size:11px;
+    font-weight:800;
+}
+
+h1{
+    margin:8px 0 9px;
+    font-size:clamp(26px,3.6vw,44px);
+    line-height:1.1;
+}
+
+.subtitle{
+    margin:0;
+    max-width:1050px;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.6;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.container{
+    width:min(1400px,94%);
+    margin:20px auto;
+}
+
+.section{
+    background:rgba(11,26,40,.96);
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin-bottom:18px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+}
+
+.section-header{
+    padding:14px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    border-bottom:1px solid var(--border);
+}
+
+.section-header h2{
+    margin:0;
+    font-size:16px;
+}
+
+.section-content{
+    padding:18px;
+}
+
+.badge{
+    display:inline-block;
+    padding:5px 9px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--muted);
+    font-size:10px;
+    white-space:nowrap;
+}
+
+/* =========================================================
+   KPI
+========================================================= */
+
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+@media(max-width:800px){
+    .kpi-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:500px){
+    .kpi-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+.kpi{
+    background:#081724;
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:12px;
+}
+
+.kpi-label{
+    color:var(--muted);
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.7px;
+}
+
+.kpi-value{
+    margin-top:4px;
+    font-size:21px;
+    font-weight:850;
+}
+
+.cyan{color:var(--cyan)}
+.green{color:var(--battery)}
+.yellow{color:var(--pv)}
+.blue{color:var(--wind)}
+.red{color:var(--load)}
+.purple{color:var(--grid)}
+.orange{color:var(--orange)}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:11px;
+    color:var(--muted);
+}
+
+.status-dot{
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:var(--battery);
+    box-shadow:0 0 14px var(--battery);
+}
+
+/* =========================================================
+   MICROGRID SVG
+========================================================= */
+
+.diagram-wrapper{
+    width:100%;
+    overflow-x:auto;
+    background:
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+    background-size:25px 25px;
+    border:1px solid var(--border);
+    border-radius:10px;
+}
+
+.microgrid{
+    display:block;
+    width:1400px;
+    height:720px;
+    min-width:1400px;
+}
+
+/* SVG typography */
+
+.svg-title{
+    fill:#eaf7fb;
+    font-size:21px;
+    font-weight:900;
+    letter-spacing:.6px;
+}
+
+.svg-subtitle{
+    fill:#718b9d;
+    font-size:11px;
+}
+
+.device-box{
+    fill:#091a29;
+    stroke:#35536a;
+    stroke-width:2;
+}
+
+.device-box:hover{
+    stroke:#5c7d92;
+}
+
+.device-title{
+    fill:#edf8fc;
+    font-size:15px;
+    font-weight:850;
+}
+
+.device-sub{
+    fill:#8199a9;
+    font-size:10.5px;
+}
+
+.device-value{
+    font-size:12px;
+    font-weight:850;
+}
+
+.busbar{
+    stroke:#e7f3f7;
+    stroke-width:9;
+    stroke-linecap:round;
+}
+
+.busbar-label{
+    fill:#a7bdca;
+    font-size:11px;
+    font-weight:800;
+}
+
+.wire{
+    fill:none;
+    stroke-width:3.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.power-flow{
+    stroke-dasharray:11 9;
+    animation:dashFlow 1s linear infinite;
+}
+
+@keyframes dashFlow{
+    to{
+        stroke-dashoffset:-20;
+    }
+}
+
+.flow-label{
+    font-size:10px;
+    font-weight:800;
+}
+
+.measurement{
+    fill:#0b2433;
+    stroke:#315c72;
+    stroke-width:1;
+}
+
+.measurement-text{
+    fill:#9bc1d2;
+    font-size:9.5px;
+    font-weight:700;
+}
+
+/* =========================================================
+   CONTROLS
+========================================================= */
+
+.controls{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:12px;
+}
+
+.control{
+    background:#081724;
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:12px;
+}
+
+.control label{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:8px;
+    font-size:12px;
+    font-weight:750;
+}
+
+.control-value{
+    color:var(--cyan);
+}
+
+input[type=range]{
+    width:100%;
+    accent-color:var(--cyan);
+}
+
+select{
+    width:100%;
+    padding:9px;
+    color:var(--text);
+    background:#071522;
+    border:1px solid var(--border);
+    border-radius:6px;
+}
+
+button{
+    border:1px solid #2b6178;
+    color:#e5f8ff;
+    background:#0b3348;
+    border-radius:7px;
+    padding:9px 14px;
+    cursor:pointer;
+    font-weight:800;
+    font-size:11px;
+}
+
+button:hover{
+    background:#104c68;
+}
+
+button.primary{
+    background:#08637e;
+    border-color:#1697bd;
+}
+
+button.success{
+    background:#105c3a;
+    border-color:#23965d;
+}
+
+button.danger{
+    background:#602a31;
+    border-color:#a4434e;
+}
+
+.button-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:15px;
+}
+
+/* =========================================================
+   GRID LAYOUT
+========================================================= */
+
+.dashboard{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:15px;
+}
+
+.c3{grid-column:span 3}
+.c4{grid-column:span 4}
+.c6{grid-column:span 6}
+.c8{grid-column:span 8}
+.c12{grid-column:span 12}
+
+@media(max-width:950px){
+    .c3,.c4,.c6,.c8{
+        grid-column:span 12;
+    }
+}
+
+/* =========================================================
+   BATTERY
+========================================================= */
+
+.soc-number{
+    text-align:center;
+    font-size:43px;
+    font-weight:900;
+    color:var(--battery);
+    margin:5px 0 10px;
+}
+
+.progress{
+    height:18px;
+    background:#142736;
+    border:1px solid #2a4356;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.progress-bar{
+    height:100%;
+    width:55%;
+    background:linear-gradient(90deg,#ff5d5d,#ffd04d,#36df7d);
+    transition:.3s;
+}
+
+.center-text{
+    text-align:center;
+}
+
+.small{
+    color:var(--muted);
+    font-size:11px;
+}
+
+/* =========================================================
+   CHARTS
+========================================================= */
+
+canvas{
+    width:100%;
+    height:320px;
+    display:block;
+    background:#071521;
+    border:1px solid var(--border);
+    border-radius:9px;
+}
+
+.chart-small{
+    height:280px;
+}
+
+/* =========================================================
+   EQUATIONS
+========================================================= */
+
+.equation{
+    padding:14px;
+    margin:10px 0 15px;
+    background:#071521;
+    border:1px solid var(--border);
+    border-left:4px solid var(--cyan);
+    border-radius:7px;
+    overflow:auto;
+}
+
+.note{
+    background:#092032;
+    border:1px solid #25516a;
+    border-radius:8px;
+    padding:12px;
+    color:#b6cbd6;
+    font-size:13px;
+    line-height:1.65;
+}
+
+.alert{
+    padding:11px 13px;
+    border-radius:7px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.alert-ok{
+    color:#6cf0a2;
+    background:#0b3020;
+    border:1px solid #1c7549;
+}
+
+.alert-warning{
+    color:#ffd46a;
+    background:#382b0c;
+    border:1px solid #715a1c;
+}
+
+.alert-danger{
+    color:#ff9999;
+    background:#3b171b;
+    border:1px solid #7a3038;
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.table-wrap{
+    max-height:390px;
+    overflow:auto;
+    border:1px solid var(--border);
+    border-radius:8px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11px;
+}
+
+th,td{
+    padding:8px;
+    border-bottom:1px solid #203648;
+    text-align:right;
+    white-space:nowrap;
+}
+
+th:first-child,
+td:first-child{
+    text-align:left;
+}
+
+th{
+    background:#091a28;
+    color:#a9c0ce;
+    position:sticky;
+    top:0;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer{
+    margin-top:25px;
+    padding:27px;
+    border-top:1px solid var(--border);
+    text-align:center;
+    color:#8da4b3;
+    font-size:12px;
+    line-height:1.8;
+}
+
+footer strong{
+    color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ========================================================
+     HEADER
+========================================================= -->
+
+<header>
+
+<a class="home-link"
+   href="https://rushabhvanara.github.io"
+   target="_blank">
+    ⌂ Home
+</a>
+
+<div class="header-inner">
+
+<div class="eyebrow">
+Electrical Engineering • Virtual Laboratory
+</div>
+
+<h1>
+Renewable Energy Sources & Battery Energy Storage in Microgrid
+</h1>
+
+<p class="subtitle">
+Simulation-based study of photovoltaic generation, wind energy,
+battery energy storage, utility-grid interaction and energy-management
+operation of a hybrid AC microgrid.
+</p>
+
+</div>
+</header>
+
+
+<div class="container">
+
+<!-- ========================================================
+     SYSTEM STATUS
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+
+<h2>Microgrid Supervisory Control & Data Acquisition</h2>
+
+<div class="status">
+<span class="status-dot"></span>
+<span id="systemStatus">SYSTEM READY</span>
+</div>
+
+</div>
+
+<div class="section-content">
+
+<div class="kpi-grid">
+
+<div class="kpi">
+<div class="kpi-label">AC Bus Voltage</div>
+<div class="kpi-value cyan" id="busVoltage">400.0 V</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Frequency</div>
+<div class="kpi-value green" id="frequency">50.00 Hz</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Renewable Power</div>
+<div class="kpi-value yellow" id="renewPower">0.0 kW</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Load Power</div>
+<div class="kpi-value red" id="loadPower">0.0 kW</div>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     IMPROVED SINGLE LINE DIAGRAM
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+
+<h2>Microgrid Single-Line Diagram</h2>
+
+<span class="badge" id="flowBadge">
+NORMAL OPERATION
+</span>
+
+</div>
+
+<div class="section-content">
+
+<div class="diagram-wrapper">
+
+<svg class="microgrid"
+     viewBox="0 0 1400 720"
+     xmlns="http://www.w3.org/2000/svg">
+
+<!-- =====================================================
+     DEFINITIONS
+====================================================== -->
+
+<defs>
+
+<filter id="softGlow">
+<feGaussianBlur stdDeviation="3" result="blur"/>
+<feMerge>
+<feMergeNode in="blur"/>
+<feMergeNode in="SourceGraphic"/>
+</feMerge>
+</filter>
+
+<marker id="arrowPV"
+        markerWidth="10"
+        markerHeight="10"
+        refX="8"
+        refY="5"
+        orient="auto">
+<path d="M0 0 L10 5 L0 10 Z" fill="#ffd34d"/>
+</marker>
+
+<marker id="arrowWind"
+        markerWidth="10"
+        markerHeight="10"
+        refX="8"
+        refY="5"
+        orient="auto">
+<path d="M0 0 L10 5 L0 10 Z" fill="#4da6ff"/>
+</marker>
+
+<marker id="arrowBattery"
+        markerWidth="10"
+        markerHeight="10"
+        refX="8"
+        refY="5"
+        orient="auto">
+<path d="M0 0 L10 5 L0 10 Z" fill="#36df7d"/>
+</marker>
+
+<marker id="arrowGrid"
+        markerWidth="10"
+        markerHeight="10"
+        refX="8"
+        refY="5"
+        orient="auto">
+<path d="M0 0 L10 5 L0 10 Z" fill="#ad82ff"/>
+</marker>
+
+<marker id="arrowLoad"
+        markerWidth="10"
+        markerHeight="10"
+        refX="8"
+        refY="5"
+        orient="auto">
+<path d="M0 0 L10 5 L0 10 Z" fill="#ff6262"/>
+</marker>
+
+</defs>
+
+
+<!-- =====================================================
+     TITLE
+====================================================== -->
+
+<text x="700"
+      y="32"
+      text-anchor="middle"
+      class="svg-title">
+HYBRID RENEWABLE AC MICROGRID
+</text>
+
+<text x="700"
+      y="52"
+      text-anchor="middle"
+      class="svg-subtitle">
+Photovoltaic + Wind + Battery Energy Storage + Utility Grid
+</text>
+
+
+<!-- =====================================================
+     POWER BUS — SINGLE CENTRAL BUS
+====================================================== -->
+
+<line x1="470"
+      y1="360"
+      x2="1110"
+      y2="360"
+      class="busbar"
+      filter="url(#softGlow)"/>
+
+<text x="790"
+      y="340"
+      text-anchor="middle"
+      class="busbar-label">
+400 V AC MICROGRID MAIN BUS
+</text>
+
+
+<!-- =====================================================
+     PV ARRAY — LEFT TOP
+====================================================== -->
+
+<g id="pvDevice">
+
+<rect x="45"
+      y="105"
+      width="230"
+      height="150"
+      rx="13"
+      class="device-box"/>
+
+<text x="160"
+      y="130"
+      text-anchor="middle"
+      class="device-title">
+SOLAR PV ARRAY
+</text>
+
+<!-- solar panel -->
+
+<polygon points="83,160 211,160 228,213 66,213"
+         fill="#0b3852"
+         stroke="#ffd34d"
+         stroke-width="2"/>
+
+<line x1="91" y1="163" x2="79" y2="210"
+      stroke="#ffd34d"/>
+
+<line x1="124" y1="163" x2="119" y2="210"
+      stroke="#ffd34d"/>
+
+<line x1="157" y1="163" x2="159" y2="210"
+      stroke="#ffd34d"/>
+
+<line x1="190" y1="163" x2="199" y2="210"
+      stroke="#ffd34d"/>
+
+<line x1="75" y1="180" x2="218" y2="180"
+      stroke="#ffd34d"/>
+
+<line x1="70" y1="197" x2="223" y2="197"
+      stroke="#ffd34d"/>
+
+<text x="160"
+      y="238"
+      text-anchor="middle"
+      class="device-value"
+      fill="#ffd34d"
+      id="pvSVG">
+0.0 kW
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     PV CONVERTER
+====================================================== -->
+
+<g>
+
+<rect x="325"
+      y="125"
+      width="190"
+      height="110"
+      rx="12"
+      class="device-box"/>
+
+<text x="420"
+      y="153"
+      text-anchor="middle"
+      class="device-title">
+MPPT / DC-DC
+</text>
+
+<text x="420"
+      y="177"
+      text-anchor="middle"
+      class="device-sub">
+Maximum Power Point
+</text>
+
+<text x="420"
+      y="194"
+      text-anchor="middle"
+      class="device-sub">
+Tracking Converter
+</text>
+
+<text x="420"
+      y="218"
+      text-anchor="middle"
+      class="device-value"
+      fill="#20d8ff">
+η = 96 %
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     WIND TURBINE — LEFT BOTTOM
+====================================================== -->
+
+<g id="windDevice">
+
+<rect x="45"
+      y="465"
+      width="230"
+      height="150"
+      rx="13"
+      class="device-box"/>
+
+<text x="160"
+      y="490"
+      text-anchor="middle"
+      class="device-title">
+WIND TURBINE
+</text>
+
+<!-- tower -->
+
+<line x1="160"
+      y1="520"
+      x2="160"
+      y2="585"
+      stroke="#4da6ff"
+      stroke-width="6"/>
+
+<circle cx="160"
+        cy="518"
+        r="7"
+        fill="#4da6ff"/>
+
+<!-- blades -->
+
+<path d="M160 518
+         C126 495 116 480 127 474
+         C140 468 158 496 160 518"
+      fill="#4da6ff"/>
+
+<path d="M160 518
+         C184 485 205 481 211 492
+         C217 505 189 518 160 518"
+      fill="#4da6ff"/>
+
+<path d="M160 518
+         C155 552 136 567 125 558
+         C114 549 139 527 160 518"
+      fill="#4da6ff"/>
+
+<text x="160"
+      y="600"
+      text-anchor="middle"
+      class="device-value"
+      fill="#4da6ff"
+      id="windSVG">
+0.0 kW
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     WIND CONVERTER
+====================================================== -->
+
+<g>
+
+<rect x="325"
+      y="485"
+      width="190"
+      height="110"
+      rx="12"
+      class="device-box"/>
+
+<text x="420"
+      y="513"
+      text-anchor="middle"
+      class="device-title">
+WIND CONVERTER
+</text>
+
+<text x="420"
+      y="537"
+      text-anchor="middle"
+      class="device-sub">
+AC/DC + Variable Speed
+</text>
+
+<text x="420"
+      y="554"
+      text-anchor="middle"
+      class="device-sub">
+Power Electronic Interface
+</text>
+
+<text x="420"
+      y="578"
+      text-anchor="middle"
+      class="device-value"
+      fill="#20d8ff">
+η = 95 %
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     BATTERY — TOP CENTER RIGHT
+====================================================== -->
+
+<g id="batteryDevice">
+
+<rect x="665"
+      y="100"
+      width="260"
+      height="165"
+      rx="13"
+      class="device-box"/>
+
+<text x="795"
+      y="128"
+      text-anchor="middle"
+      class="device-title">
+BATTERY ENERGY STORAGE
+</text>
+
+<!-- battery -->
+
+<rect x="735"
+      y="155"
+      width="125"
+      height="62"
+      rx="7"
+      fill="#06121c"
+      stroke="#36df7d"
+      stroke-width="3"/>
+
+<rect x="860"
+      y="174"
+      width="9"
+      height="24"
+      rx="2"
+      fill="#36df7d"/>
+
+<rect id="svgBatteryLevel"
+      x="743"
+      y="163"
+      width="70"
+      height="46"
+      rx="4"
+      fill="#36df7d"/>
+
+<text x="795"
+      y="243"
+      text-anchor="middle"
+      class="device-value"
+      fill="#36df7d"
+      id="batterySVG">
+55 %
+</text>
+
+<text x="795"
+      y="258"
+      text-anchor="middle"
+      class="device-sub">
+Bidirectional ESS
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     BATTERY PCS
+====================================================== -->
+
+<g>
+
+<rect x="665"
+      y="465"
+      width="260"
+      height="120"
+      rx="13"
+      class="device-box"/>
+
+<text x="795"
+      y="493"
+      text-anchor="middle"
+      class="device-title">
+BIDIRECTIONAL PCS
+</text>
+
+<text x="795"
+      y="517"
+      text-anchor="middle"
+      class="device-sub">
+Power Conversion System
+</text>
+
+<text x="795"
+      y="539"
+      text-anchor="middle"
+      class="device-sub">
+DC ↔ AC
+</text>
+
+<text x="795"
+      y="565"
+      text-anchor="middle"
+      class="device-value"
+      fill="#36df7d">
+η = 94 %
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     GRID — TOP RIGHT
+====================================================== -->
+
+<g id="gridDevice">
+
+<rect x="1020"
+      y="100"
+      width="290"
+      height="165"
+      rx="13"
+      class="device-box"/>
+
+<text x="1165"
+      y="128"
+      text-anchor="middle"
+      class="device-title">
+UTILITY GRID
+</text>
+
+<text x="1165"
+      y="149"
+      text-anchor="middle"
+      class="device-sub">
+11 kV / 400 V equivalent
+</text>
+
+<!-- grid symbol -->
+
+<path d="M1090 220
+         L1090 175
+         M1090 180
+         Q1070 194 1090 207
+         Q1110 220 1090 234"
+      fill="none"
+      stroke="#ad82ff"
+      stroke-width="5"/>
+
+<path d="M1135 220
+         L1135 175
+         M1135 180
+         Q1115 194 1135 207
+         Q1155 220 1135 234"
+      fill="none"
+      stroke="#ad82ff"
+      stroke-width="5"/>
+
+<text x="1220"
+      y="190"
+      text-anchor="middle"
+      class="device-sub">
+IMPORT / EXPORT
+</text>
+
+<text x="1220"
+      y="218"
+      text-anchor="middle"
+      class="device-value"
+      fill="#ad82ff"
+      id="gridSVG">
+0.0 kW
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     LOAD — RIGHT CENTER
+====================================================== -->
+
+<g id="loadDevice">
+
+<rect x="1110"
+      y="430"
+      width="235"
+      height="155"
+      rx="13"
+      class="device-box"
+      stroke="#704047"/>
+
+<text x="1227"
+      y="458"
+      text-anchor="middle"
+      class="device-title">
+ELECTRICAL LOAD
+</text>
+
+<text x="1227"
+      y="481"
+      text-anchor="middle"
+      class="device-sub">
+Residential / Industrial
+</text>
+
+<!-- load symbol -->
+
+<path d="M1180 535
+         L1200 495
+         L1220 535
+         L1240 495
+         L1260 535"
+      fill="none"
+      stroke="#ff6262"
+      stroke-width="4"/>
+
+<text x="1227"
+      y="565"
+      text-anchor="middle"
+      class="device-value"
+      fill="#ff6262"
+      id="loadSVG">
+0.0 kW
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     PV POWER PATH
+====================================================== -->
+
+<path id="pvFlow"
+      d="M275 180
+         L325 180"
+      class="wire power-flow"
+      stroke="#ffd34d"
+      marker-end="url(#arrowPV)"/>
+
+<text x="300"
+      y="169"
+      text-anchor="middle"
+      class="flow-label"
+      fill="#ffd34d">
+Ppv
+</text>
+
+
+<!-- PV TO BUS: DEDICATED VERTICAL CORRIDOR -->
+
+<path id="pvBusFlow"
+      d="M515 180
+         L565 180
+         L565 360
+         L565 360"
+      class="wire power-flow"
+      stroke="#ffd34d"
+      marker-end="url(#arrowPV)"/>
+
+
+<!-- =====================================================
+     WIND POWER PATH
+====================================================== -->
+
+<path id="windFlow"
+      d="M275 540
+         L325 540"
+      class="wire power-flow"
+      stroke="#4da6ff"
+      marker-end="url(#arrowWind)"/>
+
+<text x="300"
+      y="528"
+      text-anchor="middle"
+      class="flow-label"
+      fill="#4da6ff">
+Pwind
+</text>
+
+
+<!-- WIND TO BUS -->
+
+<path id="windBusFlow"
+      d="M515 540
+         L565 540
+         L565 360"
+      class="wire power-flow"
+      stroke="#4da6ff"
+      marker-end="url(#arrowWind)"/>
+
+
+<!-- =====================================================
+     BATTERY TO PCS
+====================================================== -->
+
+<path id="batteryPCSFlow"
+      d="M795 265
+         L795 465"
+      class="wire power-flow"
+      stroke="#36df7d"
+      marker-end="url(#arrowBattery)"/>
+
+<text x="808"
+      y="370"
+      class="flow-label"
+      fill="#36df7d">
+Pbat
+</text>
+
+
+<!-- PCS TO BUS -->
+
+<path id="pcsBusFlow"
+      d="M795 465
+         L795 360"
+      class="wire power-flow"
+      stroke="#36df7d"
+      marker-end="url(#arrowBattery)"/>
+
+
+<!-- =====================================================
+     GRID TO BUS
+====================================================== -->
+
+<path id="gridFlow"
+      d="M1165 265
+         L1165 360
+         L1110 360"
+      class="wire power-flow"
+      stroke="#ad82ff"
+      marker-end="url(#arrowGrid)"/>
+
+<text x="1185"
+      y="320"
+      class="flow-label"
+      fill="#ad82ff">
+Pgrid
+</text>
+
+
+<!-- =====================================================
+     BUS TO LOAD
+====================================================== -->
+
+<path id="loadFlow"
+      d="M1110 360
+         L1227 360
+         L1227 430"
+      class="wire power-flow"
+      stroke="#ff6262"
+      marker-end="url(#arrowLoad)"/>
+
+<text x="1165"
+      y="350"
+      text-anchor="middle"
+      class="flow-label"
+      fill="#ff6262">
+Pload
+</text>
+
+
+<!-- =====================================================
+     MEASUREMENT BLOCKS
+====================================================== -->
+
+<g>
+
+<rect x="590"
+      y="310"
+      width="105"
+      height="40"
+      rx="5"
+      class="measurement"/>
+
+<text x="642"
+      y="326"
+      text-anchor="middle"
+      class="measurement-text">
+BUS V
+</text>
+
+<text x="642"
+      y="341"
+      text-anchor="middle"
+      class="measurement-text"
+      id="svgVoltage">
+400 V
+</text>
+
+</g>
+
+
+<g>
+
+<rect x="705"
+      y="310"
+      width="105"
+      height="40"
+      rx="5"
+      class="measurement"/>
+
+<text x="757"
+      y="326"
+      text-anchor="middle"
+      class="measurement-text">
+FREQUENCY
+</text>
+
+<text x="757"
+      y="341"
+      text-anchor="middle"
+      class="measurement-text"
+      id="svgFrequency">
+50 Hz
+</text>
+
+</g>
+
+
+<g>
+
+<rect x="825"
+      y="310"
+      width="105"
+      height="40"
+      rx="5"
+      class="measurement"/>
+
+<text x="877"
+      y="326"
+      text-anchor="middle"
+      class="measurement-text">
+RENEWABLE
+</text>
+
+<text x="877"
+      y="341"
+      text-anchor="middle"
+      class="measurement-text"
+      id="svgRenewable">
+0 kW
+</text>
+
+</g>
+
+
+<!-- =====================================================
+     LEGEND
+====================================================== -->
+
+<g transform="translate(65 660)">
+
+<line x1="0" y1="0"
+      x2="40" y2="0"
+      stroke="#ffd34d"
+      stroke-width="4"/>
+
+<text x="50" y="4"
+      fill="#9db2bf"
+      font-size="10">
+Solar
+</text>
+
+<line x1="125" y1="0"
+      x2="165" y2="0"
+      stroke="#4da6ff"
+      stroke-width="4"/>
+
+<text x="175" y="4"
+      fill="#9db2bf"
+      font-size="10">
+Wind
+</text>
+
+<line x1="245" y1="0"
+      x2="285" y2="0"
+      stroke="#36df7d"
+      stroke-width="4"/>
+
+<text x="295" y="4"
+      fill="#9db2bf"
+      font-size="10">
+Battery
+</text>
+
+<line x1="380" y1="0"
+      x2="420" y2="0"
+      stroke="#ad82ff"
+      stroke-width="4"/>
+
+<text x="430" y="4"
+      fill="#9db2bf"
+      font-size="10">
+Grid
+</text>
+
+<line x1="510" y1="0"
+      x2="550" y2="0"
+      stroke="#ff6262"
+      stroke-width="4"/>
+
+<text x="560" y="4"
+      fill="#9db2bf"
+      font-size="10">
+Load
+</text>
+
+</g>
+
+</svg>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     SIMULATION CONTROLS
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Simulation & Energy Management Controls</h2>
+<span class="badge">24-HOUR TIME DOMAIN</span>
+</div>
+
+<div class="section-content">
+
+<div class="controls">
+
+<div class="control">
+<label>
+PV Rated Power
+<span class="control-value" id="pvV">60 kW</span>
+</label>
+<input id="pv" type="range" min="5" max="150" value="60">
+</div>
+
+<div class="control">
+<label>
+Wind Rated Power
+<span class="control-value" id="windV">50 kW</span>
+</label>
+<input id="wind" type="range" min="5" max="150" value="50">
+</div>
+
+<div class="control">
+<label>
+Battery Capacity
+<span class="control-value" id="batV">150 kWh</span>
+</label>
+<input id="bat" type="range" min="20" max="400" value="150">
+</div>
+
+<div class="control">
+<label>
+Battery Power Limit
+<span class="control-value" id="batPowerV">60 kW</span>
+</label>
+<input id="batPower" type="range" min="5" max="150" value="60">
+</div>
+
+<div class="control">
+<label>
+Initial SOC
+<span class="control-value" id="socV">55%</span>
+</label>
+<input id="soc" type="range" min="10" max="95" value="55">
+</div>
+
+<div class="control">
+<label>
+Base Load
+<span class="control-value" id="loadV">55 kW</span>
+</label>
+<input id="load" type="range" min="10" max="150" value="55">
+</div>
+
+<div class="control">
+<label>
+Charge Efficiency
+<span class="control-value" id="etaCV">94%</span>
+</label>
+<input id="etaC" type="range" min="70" max="100" value="94">
+</div>
+
+<div class="control">
+<label>
+Discharge Efficiency
+<span class="control-value" id="etaDV">94%</span>
+</label>
+<input id="etaD" type="range" min="70" max="100" value="94">
+</div>
+
+<div class="control">
+<label>Energy Management Mode</label>
+
+<select id="mode">
+<option value="normal">Normal EMS</option>
+<option value="batteryFirst">Battery Priority</option>
+<option value="gridSupport">Grid Support</option>
+<option value="renewableFirst">Renewable First</option>
+</select>
+
+</div>
+
+</div>
+
+
+<div class="button-row">
+
+<button class="primary"
+        onclick="simulate()">
+▶ RUN SIMULATION
+</button>
+
+<button onclick="animateSimulation()">
+▶ LIVE ANIMATION
+</button>
+
+<button class="success"
+        onclick="highRenewable()">
+☀ HIGH RENEWABLE
+</button>
+
+<button class="danger"
+        onclick="resetAll()">
+↺ RESET
+</button>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     BATTERY PANEL
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Battery Energy Storage System</h2>
+<span class="badge" id="batteryState">STANDBY</span>
+</div>
+
+<div class="section-content">
+
+<div class="dashboard">
+
+<div class="c4">
+
+<div class="soc-number"
+     id="socBig">
+55%
+</div>
+
+<div class="progress">
+<div class="progress-bar"
+     id="socBar">
+</div>
+</div>
+
+<p class="center-text small">
+State of Charge
+</p>
+
+<div class="kpi-grid">
+
+<div class="kpi">
+<div class="kpi-label">Stored Energy</div>
+<div class="kpi-value"
+     id="batEnergy">
+82.5 kWh
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Battery Power</div>
+<div class="kpi-value"
+     id="batLivePower">
+0.0 kW
+</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="c8">
+
+<canvas id="batteryCanvas"
+        class="chart-small">
+</canvas>
+
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     CALCULATED RESULTS
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Calculated Energy Performance</h2>
+</div>
+
+<div class="section-content">
+
+<div class="kpi-grid">
+
+<div class="kpi">
+<div class="kpi-label">PV Energy</div>
+<div class="kpi-value yellow"
+     id="pvEnergy">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Wind Energy</div>
+<div class="kpi-value blue"
+     id="windEnergy">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Load Energy</div>
+<div class="kpi-value red"
+     id="loadEnergy">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Renewable Energy</div>
+<div class="kpi-value green"
+     id="renewEnergy">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Grid Import</div>
+<div class="kpi-value purple"
+     id="gridImport">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Grid Export</div>
+<div class="kpi-value purple"
+     id="gridExport">
+0
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Renewable Penetration</div>
+<div class="kpi-value green"
+     id="penetration">
+0%
+</div>
+</div>
+
+<div class="kpi">
+<div class="kpi-label">Self Sufficiency</div>
+<div class="kpi-value cyan"
+     id="selfSuff">
+0%
+</div>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     MATHEMATICAL MODEL
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Mathematical Model & Calculations</h2>
+</div>
+
+<div class="section-content">
+
+<h3>Solar PV Power</h3>
+
+<div class="equation">
+
+<math display="block">
+
+<mrow>
+
+<msub>
+<mi>P</mi>
+<mi>PV</mi>
+</msub>
+
+<mo>=</mo>
+
+<msub>
+<mi>P</mi>
+<mi>PV,rated</mi>
+</msub>
+
+<mo>×</mo>
+
+<mi>G</mi>
+
+<mo>×</mo>
+
+<msub>
+<mi>η</mi>
+<mi>PV</mi>
+</msub>
+
+</mrow>
+
+</math>
+
+</div>
+
+
+<h3>Wind Turbine Power</h3>
+
+<div class="equation">
+
+<math display="block">
+
+<mrow>
+
+<msub>
+<mi>P</mi>
+<mi>wind</mi>
+</msub>
+
+<mo>=</mo>
+
+<msub>
+<mi>P</mi>
+<mi>rated</mi>
+</msub>
+
+<mo>×</mo>
+
+<msup>
+
+<mrow>
+
+<mo>(</mo>
+
+<mfrac>
+
+<mrow>
+<mi>v</mi>
+<mo>−</mo>
+<msub>
+<mi>v</mi>
+<mi>ci</mi>
+</msub>
+</mrow>
+
+<mrow>
+
+<msub>
+<mi>v</mi>
+<mi>r</mi>
+</msub>
+
+<mo>−</mo>
+
+<msub>
+<mi>v</mi>
+<mi>ci</mi>
+</msub>
+
+</mrow>
+
+</mfrac>
+
+<mo>)</mo>
+
+</mrow>
+
+<mn>3</mn>
+
+</msup>
+
+</mrow>
+
+</math>
+
+</div>
+
+
+<h3>Battery Energy Balance</h3>
+
+<div class="equation">
+
+<math display="block">
+
+<mrow>
+
+<msub>
+<mi>E</mi>
+<mrow>
+<mi>t</mi>
+<mo>+</mo>
+<mn>1</mn>
+</mrow>
+</msub>
+
+<mo>=</mo>
+
+<msub>
+<mi>E</mi>
+<mi>t</mi>
+</msub>
+
+<mo>+</mo>
+
+<msub>
+<mi>P</mi>
+<mi>ch</mi>
+</msub>
+
+<msub>
+<mi>η</mi>
+<mi>c</mi>
+</msub>
+
+<mo>Δ</mo>
+<mi>t</mi>
+
+<mo>−</mo>
+
+<mfrac>
+
+<msub>
+<mi>P</mi>
+<mi>dis</mi>
+</msub>
+
+<msub>
+<mi>η</mi>
+<mi>d</mi>
+</msub>
+
+</mfrac>
+
+<mo>Δ</mo>
+<mi>t</mi>
+
+</mrow>
+
+</math>
+
+</div>
+
+
+<h3>Microgrid Power Balance</h3>
+
+<div class="equation">
+
+<math display="block">
+
+<mrow>
+
+<msub><mi>P</mi><mi>PV</mi></msub>
+
+<mo>+</mo>
+
+<msub><mi>P</mi><mi>wind</mi></msub>
+
+<mo>+</mo>
+
+<msub><mi>P</mi><mi>bat</mi></msub>
+
+<mo>+</mo>
+
+<msub><mi>P</mi><mi>grid</mi></msub>
+
+<mo>=</mo>
+
+<msub><mi>P</mi><mi>load</mi></msub>
+
+</mrow>
+
+</math>
+
+</div>
+
+
+<div class="note">
+
+<strong>Sign convention:</strong>
+
+Positive battery power represents discharge.
+Negative battery power represents charging.
+
+Positive grid power represents utility import.
+Negative grid power represents utility export.
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     GRAPHS
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+
+<h2>Publication-Style Simulation Graphs</h2>
+
+<span class="badge">
+24-HOUR RESULTS
+</span>
+
+</div>
+
+<div class="section-content">
+
+<div class="dashboard">
+
+<div class="c6">
+
+<h3>Renewable Generation vs Load</h3>
+
+<canvas id="powerCanvas">
+</canvas>
+
+</div>
+
+
+<div class="c6">
+
+<h3>Battery State of Charge</h3>
+
+<canvas id="socCanvas">
+</canvas>
+
+</div>
+
+
+<div class="c6">
+
+<h3>Solar Irradiance & Wind Resource</h3>
+
+<canvas id="resourceCanvas">
+</canvas>
+
+</div>
+
+
+<div class="c6">
+
+<h3>Utility Grid Exchange</h3>
+
+<canvas id="gridCanvas">
+</canvas>
+
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     LIVE OPERATION
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+
+<h2>Live Operating Point</h2>
+
+<span class="badge"
+      id="liveHour">
+00:00
+</span>
+
+</div>
+
+<div class="section-content">
+
+<div class="dashboard">
+
+<div class="c3">
+<div class="kpi">
+<div class="kpi-label">PV</div>
+<div class="kpi-value yellow"
+     id="livePV">
+0.0 kW
+</div>
+</div>
+</div>
+
+<div class="c3">
+<div class="kpi">
+<div class="kpi-label">Wind</div>
+<div class="kpi-value blue"
+     id="liveWind">
+0.0 kW
+</div>
+</div>
+</div>
+
+<div class="c3">
+<div class="kpi">
+<div class="kpi-label">Load</div>
+<div class="kpi-value red"
+     id="liveLoad">
+0.0 kW
+</div>
+</div>
+</div>
+
+<div class="c3">
+<div class="kpi">
+<div class="kpi-label">Grid</div>
+<div class="kpi-value purple"
+     id="liveGrid">
+0.0 kW
+</div>
+</div>
+</div>
+
+</div>
+
+
+<div id="liveMessage"
+     class="alert alert-ok"
+     style="margin-top:14px">
+
+Simulation ready.
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     OBSERVATION TABLE
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>24-Hour Numerical Observation Table</h2>
+</div>
+
+<div class="section-content">
+
+<div class="table-wrap">
+
+<table id="table">
+
+<thead>
+
+<tr>
+<th>Time</th>
+<th>Irradiance (%)</th>
+<th>Wind (m/s)</th>
+<th>PV (kW)</th>
+<th>Wind (kW)</th>
+<th>Load (kW)</th>
+<th>Battery (kW)</th>
+<th>SOC (%)</th>
+<th>Grid (kW)</th>
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     FAULT STUDY
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+
+<h2>Microgrid Fault & Contingency Study</h2>
+
+<span class="badge">
+EDUCATIONAL MODEL
+</span>
+
+</div>
+
+<div class="section-content">
+
+<div class="controls">
+
+<div class="control">
+
+<label>Solar PV</label>
+
+<button id="pvFaultBtn"
+        onclick="toggleFault('pv')">
+NORMAL
+</button>
+
+</div>
+
+
+<div class="control">
+
+<label>Wind Turbine</label>
+
+<button id="windFaultBtn"
+        onclick="toggleFault('wind')">
+NORMAL
+</button>
+
+</div>
+
+
+<div class="control">
+
+<label>Battery ESS</label>
+
+<button id="batFaultBtn"
+        onclick="toggleFault('battery')">
+NORMAL
+</button>
+
+</div>
+
+
+<div class="control">
+
+<label>Utility Grid</label>
+
+<button id="gridFaultBtn"
+        onclick="toggleFault('grid')">
+NORMAL
+</button>
+
+</div>
+
+</div>
+
+
+<div id="faultMessage"
+     class="alert alert-ok"
+     style="margin-top:14px">
+
+No faults applied.
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     PROCEDURE
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Virtual Laboratory Procedure</h2>
+</div>
+
+<div class="section-content">
+
+<ol>
+
+<li>
+Set the installed PV and wind generation capacities.
+</li>
+
+<li>
+Select battery energy capacity and initial SOC.
+</li>
+
+<li>
+Set the battery charge/discharge power limit.
+</li>
+
+<li>
+Select battery charge and discharge efficiencies.
+</li>
+
+<li>
+Set the average electrical load.
+</li>
+
+<li>
+Select the desired energy-management strategy.
+</li>
+
+<li>
+Run the 24-hour simulation.
+</li>
+
+<li>
+Observe renewable generation, load demand and battery SOC.
+</li>
+
+<li>
+Observe grid import/export during power deficit or surplus.
+</li>
+
+<li>
+Apply PV, wind, battery or grid contingencies.
+</li>
+
+<li>
+Compare renewable penetration and load self-sufficiency.
+</li>
+
+</ol>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     RESULT INTERPRETATION
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Automatic Result Interpretation</h2>
+</div>
+
+<div class="section-content">
+
+<div id="interpretation"
+     class="note">
+
+Run the simulation to generate the calculated engineering interpretation.
+
+</div>
+
+</div>
+</section>
+
+
+<!-- ========================================================
+     CONCLUSION
+========================================================= -->
+
+<section class="section">
+
+<div class="section-header">
+<h2>Conclusion</h2>
+</div>
+
+<div class="section-content">
+
+<p>
+The virtual laboratory demonstrates the coordinated operation of solar
+photovoltaic generation, wind generation, battery energy storage and utility
+grid support in a hybrid microgrid.
+</p>
+
+<p>
+The battery energy storage system absorbs renewable-energy surplus during
+high-generation periods and supplies part of the load during renewable-energy
+deficits. The utility grid compensates for any remaining power imbalance when
+the battery reaches its operating limits.
+</p>
+
+<p>
+The simulation enables investigation of renewable penetration, battery
+sizing, state-of-charge management, grid dependence, renewable curtailment,
+energy exchange and contingency operation.
+</p>
+
+</div>
+</section>
+
+</div>
+
+
+<!-- ========================================================
+     FOOTER
+========================================================= -->
+
+<footer>
+
+<div>
+Made with ❤️ by <strong>Rushabh Vanara</strong>
+</div>
+
+<div>
+Electrical engineering department, Government Polytechnic, Junagadh
+</div>
+
+</footer>
+
+
+<script>
+
+/* =========================================================
+   MICROGRID SIMULATION ENGINE
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+let data = [];
+let animationTimer = null;
+
+const faults = {
+    pv:false,
+    wind:false,
+    battery:false,
+    grid:false
+};
+
+
+/* =========================================================
+   CONTROL DISPLAY
+========================================================= */
+
+const controls = [
+
+    ["pv","pvV"," kW"],
+    ["wind","windV"," kW"],
+    ["bat","batV"," kWh"],
+    ["batPower","batPowerV"," kW"],
+    ["soc","socV","%"],
+    ["load","loadV"," kW"],
+    ["etaC","etaCV","%"],
+    ["etaD","etaDV","%"]
+
+];
+
+controls.forEach(c => {
+
+    $(c[0]).addEventListener("input",function(){
+
+        $(c[1]).textContent =
+            this.value + c[2];
+
+    });
+
+});
+
+
+/* =========================================================
+   SOLAR IRRADIANCE MODEL
+========================================================= */
+
+function irradiance(hour){
+
+    if(hour < 6 || hour > 18){
+        return 0;
+    }
+
+    const x =
+        (hour - 6) / 12;
+
+    let G =
+        Math.sin(Math.PI*x);
+
+    G *=
+        0.94 +
+        0.045*Math.sin(hour*1.73) +
+        0.025*Math.cos(hour*3.7);
+
+    return Math.max(
+        0,
+        Math.min(1,G)
+    );
+}
+
+
+/* =========================================================
+   WIND SPEED MODEL
+========================================================= */
+
+function windSpeed(hour){
+
+    return Math.max(
+        3.2,
+
+        8 +
+
+        1.8*Math.sin(
+            (hour+1)*Math.PI/12
+        ) +
+
+        1.25*Math.sin(hour*1.7) +
+
+        0.6*Math.cos(hour*.83)
+    );
+
+}
+
+
+/* =========================================================
+   WIND TURBINE MODEL
+========================================================= */
+
+function windPower(v,rated){
+
+    const vci = 3;
+    const vr = 12;
+    const vco = 25;
+
+    if(v < vci || v >= vco){
+        return 0;
+    }
+
+    if(v < vr){
+
+        const x =
+            (v-vci)/
+            (vr-vci);
+
+        return rated*
+               x*x*x*
+               0.95;
+    }
+
+    return rated*0.95;
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+function loadProfile(hour,base){
+
+    let factor = 0.9;
+
+    if(hour < 6){
+
+        factor = 0.68;
+
+    }else if(hour < 9){
+
+        factor = 1.00;
+
+    }else if(hour < 16){
+
+        factor = 0.83;
+
+    }else if(hour < 21){
+
+        factor = 1.38;
+
+    }else{
+
+        factor = 1.00;
+
+    }
+
+    return base*factor;
+}
+
+
+/* =========================================================
+   SIMULATION
+========================================================= */
+
+function simulate(){
+
+    stopAnimation();
+
+    const pvRated =
+        Number($("pv").value);
+
+    const windRated =
+        Number($("wind").value);
+
+    const capacity =
+        Number($("bat").value);
+
+    const maxBatteryPower =
+        Number($("batPower").value);
+
+    const etaC =
+        Number($("etaC").value)/100;
+
+    const etaD =
+        Number($("etaD").value)/100;
+
+    const baseLoad =
+        Number($("load").value);
+
+    let batteryEnergy =
+        capacity*
+        Number($("soc").value)/100;
+
+    data = [];
+
+    let pvEnergy = 0;
+    let windEnergy = 0;
+    let loadEnergy = 0;
+
+    let gridImport = 0;
+    let gridExport = 0;
+
+    let chargeEnergy = 0;
+    let dischargeEnergy = 0;
+
+
+    for(let hour=0;hour<24;hour++){
+
+        const G =
+            irradiance(hour);
+
+        const v =
+            windSpeed(hour);
+
+
+        let pv =
+            pvRated*
+            G*
+            0.96;
+
+        let wind =
+            windPower(
+                v,
+                windRated
+            );
+
+
+        if(faults.pv){
+            pv = 0;
+        }
+
+        if(faults.wind){
+            wind = 0;
+        }
+
+
+        const load =
+            loadProfile(
+                hour,
+                baseLoad
+            );
+
+
+        const renewable =
+            pv + wind;
+
+
+        let batteryPower = 0;
+        let gridPower = 0;
+
+
+        /* =============================================
+           RENEWABLE SURPLUS
+        ============================================== */
+
+        if(renewable >= load){
+
+            const surplus =
+                renewable-load;
+
+
+            if(!faults.battery){
+
+                const charge =
+                    Math.min(
+
+                        surplus,
+
+                        maxBatteryPower,
+
+                        (capacity-batteryEnergy)/
+                        etaC
+
+                    );
+
+
+                if(charge > 0){
+
+                    batteryPower =
+                        -charge;
+
+                    batteryEnergy +=
+                        charge*etaC;
+
+                    chargeEnergy +=
+                        charge;
+                }
+            }
+
+
+            const excess =
+                surplus +
+                batteryPower;
+
+
+            if(faults.grid){
+
+                gridPower = 0;
+
+            }else{
+
+                gridPower =
+                    -Math.max(
+                        0,
+                        excess
+                    );
+            }
+
+
+        }else{
+
+            /* =========================================
+               RENEWABLE DEFICIT
+            ========================================== */
+
+            const deficit =
+                load-renewable;
+
+
+            if(!faults.battery){
+
+                const discharge =
+                    Math.min(
+
+                        deficit,
+
+                        maxBatteryPower,
+
+                        batteryEnergy*etaD
+
+                    );
+
+
+                if(discharge > 0){
+
+                    batteryPower =
+                        discharge;
+
+                    batteryEnergy -=
+                        discharge/etaD;
+
+                    dischargeEnergy +=
+                        discharge;
+                }
+            }
+
+
+            const remaining =
+                deficit -
+                Math.max(
+                    0,
+                    batteryPower
+                );
+
+
+            if(faults.grid){
+
+                gridPower = 0;
+
+            }else{
+
+                gridPower =
+                    remaining;
+            }
+
+        }
+
+
+        batteryEnergy =
+            Math.max(
+                0,
+                Math.min(
+                    capacity,
+                    batteryEnergy
+                )
+            );
+
+
+        if(gridPower > 0){
+            gridImport += gridPower;
+        }
+
+        if(gridPower < 0){
+            gridExport += -gridPower;
+        }
+
+
+        pvEnergy += pv;
+        windEnergy += wind;
+        loadEnergy += load;
+
+
+        data.push({
+
+            hour,
+
+            irradiance:G,
+
+            windSpeed:v,
+
+            pv,
+
+            wind,
+
+            load,
+
+            battery:batteryPower,
+
+            soc:
+                100*
+                batteryEnergy/
+                capacity,
+
+            grid:gridPower
+
+        });
+
+    }
+
+
+    const renewableEnergy =
+        pvEnergy +
+        windEnergy;
+
+
+    const penetration =
+        renewableEnergy/
+        loadEnergy*100;
+
+
+    const selfSufficiency =
+        Math.max(
+            0,
+            (1-gridImport/loadEnergy)*100
+        );
+
+
+    window.results = {
+
+        pvEnergy,
+        windEnergy,
+        renewableEnergy,
+
+        loadEnergy,
+
+        gridImport,
+        gridExport,
+
+        chargeEnergy,
+        dischargeEnergy,
+
+        penetration,
+        selfSufficiency,
+
+        finalSOC:
+            data[23].soc
+
+    };
+
+
+    updateResults();
+
+    updateTable();
+
+    updateInterpretation();
+
+    drawCharts();
+
+    updateSVG();
+
+    $("systemStatus").textContent =
+        "SIMULATION COMPLETE";
+
+    $("flowBadge").textContent =
+        "24-HOUR SIMULATION";
+
+}
+
+
+/* =========================================================
+   NUMBER FORMAT
+========================================================= */
+
+function num(value){
+
+    return Number(value).toFixed(1);
+
+}
+
+
+/* =========================================================
+   UPDATE RESULT CARDS
+========================================================= */
+
+function updateResults(){
+
+    const r =
+        window.results;
+
+
+    $("pvEnergy").textContent =
+        num(r.pvEnergy)+" kWh";
+
+    $("windEnergy").textContent =
+        num(r.windEnergy)+" kWh";
+
+    $("renewEnergy").textContent =
+        num(r.renewableEnergy)+" kWh";
+
+    $("loadEnergy").textContent =
+        num(r.loadEnergy)+" kWh";
+
+    $("gridImport").textContent =
+        num(r.gridImport)+" kWh";
+
+    $("gridExport").textContent =
+        num(r.gridExport)+" kWh";
+
+    $("penetration").textContent =
+        num(r.penetration)+"%";
+
+    $("selfSuff").textContent =
+        num(r.selfSufficiency)+"%";
+
+
+    const soc =
+        r.finalSOC;
+
+
+    $("socBig").textContent =
+        num(soc)+"%";
+
+    $("socBar").style.width =
+        soc+"%";
+
+
+    $("batEnergy").textContent =
+        num(
+            soc/100*
+            Number($("bat").value)
+        )+
+        " kWh";
+
+
+    $("pvSVG").textContent =
+        num(data[23].pv)+" kW";
+
+    $("windSVG").textContent =
+        num(data[23].wind)+" kW";
+
+    $("gridSVG").textContent =
+        num(data[23].grid)+" kW";
+
+    $("loadSVG").textContent =
+        num(data[23].load)+" kW";
+
+
+    updateBatteryGraphic(soc);
+
+}
+
+
+/* =========================================================
+   SVG BATTERY
+========================================================= */
+
+function updateBatteryGraphic(soc){
+
+    const width =
+        Math.max(
+            3,
+            109*soc/100
+        );
+
+    $("svgBatteryLevel")
+        .setAttribute(
+            "width",
+            width
+        );
+
+}
+
+
+/* =========================================================
+   UPDATE SVG LIVE VALUES
+========================================================= */
+
+function updateSVG(){
+
+    const x =
+        data[23];
+
+    $("svgVoltage").textContent =
+        "400 V";
+
+    $("svgFrequency").textContent =
+        "50 Hz";
+
+    $("svgRenewable").textContent =
+        num(
+            x.pv+x.wind
+        )+
+        " kW";
+
+}
+
+
+/* =========================================================
+   CANVAS SETUP
+========================================================= */
+
+function canvasSetup(id){
+
+    const canvas =
+        $(id);
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const dpr =
+        window.devicePixelRatio ||
+        1;
+
+
+    canvas.width =
+        rect.width*dpr;
+
+    canvas.height =
+        rect.height*dpr;
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+
+    return {
+
+        ctx,
+
+        W:rect.width,
+
+        H:rect.height
+
+    };
+
+}
+
+
+/* =========================================================
+   GENERIC CHART
+========================================================= */
+
+function drawChart(
+    canvasID,
+    series,
+    yLabel,
+    zero=false
+){
+
+    const c =
+        canvasSetup(
+            canvasID
+        );
+
+
+    const ctx =
+        c.ctx;
+
+    const W =
+        c.W;
+
+    const H =
+        c.H;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    const L = 55;
+    const R = 18;
+    const T = 35;
+    const B = 42;
+
+
+    const plotW =
+        W-L-R;
+
+    const plotH =
+        H-T-B;
+
+
+    let values = [];
+
+    series.forEach(
+        s =>
+            values.push(
+                ...s.values
+            )
+    );
+
+
+    let min =
+        Math.min(...values);
+
+    let max =
+        Math.max(...values);
+
+
+    if(zero){
+
+        min =
+            Math.min(
+                0,
+                min
+            );
+
+        max =
+            Math.max(
+                0,
+                max
+            );
+
+    }
+
+
+    if(min===max){
+
+        min -= 1;
+        max += 1;
+
+    }
+
+
+    const range =
+        max-min;
+
+
+    min -= range*.08;
+    max += range*.08;
+
+
+    /* GRID */
+
+    ctx.font =
+        "10px Segoe UI";
+
+
+    for(let i=0;i<=5;i++){
+
+        const y =
+            T+
+            plotH*i/5;
+
+
+        ctx.strokeStyle =
+            "#1a3040";
+
+        ctx.lineWidth = 1;
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            L,
+            y
+        );
+
+        ctx.lineTo(
+            L+plotW,
+            y
+        );
+
+        ctx.stroke();
+
+
+        const value =
+            max-
+            (max-min)*i/5;
+
+
+        ctx.fillStyle =
+            "#78909e";
+
+        ctx.textAlign =
+            "right";
+
+
+        ctx.fillText(
+            value.toFixed(0),
+            L-7,
+            y+4
+        );
+
+    }
+
+
+    /* AXES */
+
+    ctx.strokeStyle =
+        "#718997";
+
+    ctx.lineWidth =
+        1.2;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        L,
+        T
+    );
+
+    ctx.lineTo(
+        L,
+        T+plotH
+    );
+
+    ctx.lineTo(
+        L+plotW,
+        T+plotH
+    );
+
+    ctx.stroke();
+
+
+    /* ZERO LINE */
+
+    if(
+        zero &&
+        min<0 &&
+        max>0
+    ){
+
+        const zy =
+            T+
+            plotH*
+            max/
+            (max-min);
+
+
+        ctx.strokeStyle =
+            "#526b7b";
+
+        ctx.setLineDash(
+            [5,5]
+        );
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            L,
+            zy
+        );
+
+        ctx.lineTo(
+            L+plotW,
+            zy
+        );
+
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+    }
+
+
+    /* X AXIS */
+
+    ctx.fillStyle =
+        "#78909e";
+
+    ctx.textAlign =
+        "center";
+
+
+    for(
+        let i=0;
+        i<24;
+        i+=3
+    ){
+
+        const x =
+            L+
+            plotW*
+            i/
+            23;
+
+
+        ctx.fillText(
+
+            String(i)
+            .padStart(2,"0")+
+            ":00",
+
+            x,
+
+            H-18
+
+        );
+
+    }
+
+
+    /* Y LABEL */
+
+    ctx.save();
+
+    ctx.translate(
+        14,
+        H/2
+    );
+
+    ctx.rotate(
+        -Math.PI/2
+    );
+
+    ctx.fillStyle =
+        "#78909e";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.fillText(
+        yLabel,
+        0,
+        0
+    );
+
+    ctx.restore();
+
+
+    /* SERIES */
+
+    series.forEach(s=>{
+
+        ctx.strokeStyle =
+            s.color;
+
+        ctx.lineWidth =
+            2.3;
+
+        ctx.beginPath();
+
+
+        s.values.forEach(
+            (value,i)=>{
+
+                const x =
+                    L+
+                    plotW*
+                    i/
+                    23;
+
+
+                const y =
+                    T+
+                    plotH*
+                    (max-value)/
+                    (max-min);
+
+
+                if(i===0){
+
+                    ctx.moveTo(
+                        x,
+                        y
+                    );
+
+                }else{
+
+                    ctx.lineTo(
+                        x,
+                        y
+                    );
+
+                }
+
+            }
+        );
+
+
+        ctx.stroke();
+
+
+        /* DATA MARKERS */
+
+        ctx.fillStyle =
+            s.color;
+
+
+        s.values.forEach(
+            (value,i)=>{
+
+                const x =
+                    L+
+                    plotW*
+                    i/
+                    23;
+
+
+                const y =
+                    T+
+                    plotH*
+                    (max-value)/
+                    (max-min);
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    2.2,
+                    0,
+                    Math.PI*2
+                );
+
+                ctx.fill();
+
+            }
+        );
+
+    });
+
+
+    /* LEGEND */
+
+    let legendX =
+        L;
+
+
+    series.forEach(s=>{
+
+        ctx.fillStyle =
+            s.color;
+
+        ctx.fillRect(
+            legendX,
+            11,
+            9,
+            9
+        );
+
+
+        ctx.fillStyle =
+            "#b9cbd5";
+
+        ctx.textAlign =
+            "left";
+
+
+        ctx.fillText(
+            s.name,
+            legendX+14,
+            20
+        );
+
+
+        legendX +=
+            20+
+            ctx.measureText(
+                s.name
+            ).width;
+
+    });
+
+}
+
+
+/* =========================================================
+   DRAW ALL CHARTS
+========================================================= */
+
+function drawCharts(){
+
+    drawChart(
+        "powerCanvas",
+
+        [
+
+            {
+                name:"PV",
+                color:"#ffd34d",
+                values:
+                    data.map(
+                        x=>x.pv
+                    )
+            },
+
+            {
+                name:"Wind",
+                color:"#4da6ff",
+                values:
+                    data.map(
+                        x=>x.wind
+                    )
+            },
+
+            {
+                name:"Load",
+                color:"#ff6262",
+                values:
+                    data.map(
+                        x=>x.load
+                    )
+            }
+
+        ],
+
+        "Power (kW)"
+
+    );
+
+
+    drawChart(
+        "socCanvas",
+
+        [
+
+            {
+                name:"SOC",
+                color:"#36df7d",
+                values:
+                    data.map(
+                        x=>x.soc
+                    )
+            }
+
+        ],
+
+        "SOC (%)"
+
+    );
+
+
+    drawChart(
+        "resourceCanvas",
+
+        [
+
+            {
+                name:"Irradiance",
+                color:"#ffd34d",
+                values:
+                    data.map(
+                        x=>x.irradiance*100
+                    )
+            },
+
+            {
+                name:"Wind",
+                color:"#20d8ff",
+                values:
+                    data.map(
+                        x=>x.windSpeed*4
+                    )
+            }
+
+        ],
+
+        "Normalized"
+
+    );
+
+
+    drawChart(
+        "gridCanvas",
+
+        [
+
+            {
+                name:"Grid",
+                color:"#ad82ff",
+                values:
+                    data.map(
+                        x=>x.grid
+                    )
+            }
+
+        ],
+
+        "Grid (kW)",
+        true
+
+    );
+
+
+    drawChart(
+        "batteryCanvas",
+
+        [
+
+            {
+                name:"Battery SOC",
+                color:"#36df7d",
+                values:
+                    data.map(
+                        x=>x.soc
+                    )
+            }
+
+        ],
+
+        "SOC (%)"
+
+    );
+
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+function updateTable(){
+
+    const body =
+        $("table")
+        .querySelector(
+            "tbody"
+        );
+
+
+    body.innerHTML = "";
+
+
+    data.forEach(x=>{
+
+        const row =
+            document.createElement(
+                "tr"
+            );
+
+
+        row.innerHTML = `
+
+        <td>
+            ${String(x.hour).padStart(2,"0")}:00
+        </td>
+
+        <td>
+            ${num(x.irradiance*100)}
+        </td>
+
+        <td>
+            ${num(x.windSpeed)}
+        </td>
+
+        <td>
+            ${num(x.pv)}
+        </td>
+
+        <td>
+            ${num(x.wind)}
+        </td>
+
+        <td>
+            ${num(x.load)}
+        </td>
+
+        <td>
+            ${num(x.battery)}
+        </td>
+
+        <td>
+            ${num(x.soc)}
+        </td>
+
+        <td>
+            ${num(x.grid)}
+        </td>
+
+        `;
+
+
+        body.appendChild(
+            row
+        );
+
+    });
+
+}
+
+
+/* =========================================================
+   INTERPRETATION
+========================================================= */
+
+function updateInterpretation(){
+
+    const r =
+        window.results;
+
+
+    const maximumPV =
+        Math.max(
+            ...data.map(
+                x=>x.pv
+            )
+        );
+
+
+    const maximumWind =
+        Math.max(
+            ...data.map(
+                x=>x.wind
+            )
+        );
+
+
+    const minimumSOC =
+        Math.min(
+            ...data.map(
+                x=>x.soc
+            )
+        );
+
+
+    const maximumSOC =
+        Math.max(
+            ...data.map(
+                x=>x.soc
+            )
+        );
+
+
+    const chargingHours =
+        data.filter(
+            x=>x.battery<-.1
+        ).length;
+
+
+    const dischargingHours =
+        data.filter(
+            x=>x.battery>.1
+        ).length;
+
+
+    let conclusion;
+
+
+    if(
+        r.penetration >= 100
+    ){
+
+        conclusion =
+            "The renewable generation capacity is sufficient to produce daily energy equal to or greater than the simulated electrical demand.";
+
+    }else{
+
+        conclusion =
+            "Increasing renewable capacity and/or battery storage can further reduce utility-grid dependence.";
+
+    }
+
+
+    $("interpretation").innerHTML = `
+
+    <strong>Calculated engineering interpretation</strong>
+
+    <ul>
+
+    <li>
+    Daily PV energy:
+    <strong>${num(r.pvEnergy)} kWh</strong>
+    </li>
+
+    <li>
+    Daily wind energy:
+    <strong>${num(r.windEnergy)} kWh</strong>
+    </li>
+
+    <li>
+    Total renewable energy:
+    <strong>${num(r.renewableEnergy)} kWh</strong>
+    </li>
+
+    <li>
+    Daily load energy:
+    <strong>${num(r.loadEnergy)} kWh</strong>
+    </li>
+
+    <li>
+    Maximum PV power:
+    <strong>${num(maximumPV)} kW</strong>
+    </li>
+
+    <li>
+    Maximum wind power:
+    <strong>${num(maximumWind)} kW</strong>
+    </li>
+
+    <li>
+    Battery SOC range:
+    <strong>${num(minimumSOC)}–${num(maximumSOC)}%</strong>
+    </li>
+
+    <li>
+    Battery charging duration:
+    <strong>${chargingHours} h</strong>
+    </li>
+
+    <li>
+    Battery discharging duration:
+    <strong>${dischargingHours} h</strong>
+    </li>
+
+    <li>
+    Utility import:
+    <strong>${num(r.gridImport)} kWh</strong>
+    </li>
+
+    <li>
+    Utility export:
+    <strong>${num(r.gridExport)} kWh</strong>
+    </li>
+
+    <li>
+    Renewable penetration:
+    <strong>${num(r.penetration)}%</strong>
+    </li>
+
+    <li>
+    Load self-sufficiency:
+    <strong>${num(r.selfSufficiency)}%</strong>
+    </li>
+
+    </ul>
+
+    <strong>Conclusion:</strong>
+    ${conclusion}
+
+    `;
+
+}
+
+
+/* =========================================================
+   LIVE ANIMATION
+========================================================= */
+
+function animateSimulation(){
+
+    if(!data.length){
+        simulate();
+    }
+
+
+    stopAnimation();
+
+
+    let hour = 0;
+
+
+    animationTimer =
+        setInterval(()=>{
+
+            showHour(hour);
+
+            hour++;
+
+
+            if(hour >= 24){
+
+                stopAnimation();
+
+            }
+
+        },700);
+
+}
+
+
+/* =========================================================
+   DISPLAY LIVE HOUR
+========================================================= */
+
+function showHour(hour){
+
+    const x =
+        data[hour];
+
+
+    $("liveHour").textContent =
+        String(hour).padStart(2,"0")+
+        ":00";
+
+
+    $("livePV").textContent =
+        num(x.pv)+" kW";
+
+    $("liveWind").textContent =
+        num(x.wind)+" kW";
+
+    $("liveLoad").textContent =
+        num(x.load)+" kW";
+
+    $("liveGrid").textContent =
+        num(x.grid)+" kW";
+
+
+    $("batLivePower").textContent =
+        num(x.battery)+" kW";
+
+
+    $("socBig").textContent =
+        num(x.soc)+"%";
+
+
+    $("socBar").style.width =
+        x.soc+"%";
+
+
+    $("batEnergy").textContent =
+        num(
+            x.soc/100*
+            Number($("bat").value)
+        )+
+        " kWh";
+
+
+    $("pvSVG").textContent =
+        num(x.pv)+" kW";
+
+    $("windSVG").textContent =
+        num(x.wind)+" kW";
+
+    $("gridSVG").textContent =
+        num(x.grid)+" kW";
+
+    $("loadSVG").textContent =
+        num(x.load)+" kW";
+
+
+    updateBatteryGraphic(
+        x.soc
+    );
+
+
+    $("renewPower").textContent =
+        num(
+            x.pv+x.wind
+        )+
+        " kW";
+
+
+    $("loadPower").textContent =
+        num(
+            x.load
+        )+
+        " kW";
+
+
+    $("svgRenewable").textContent =
+        num(
+            x.pv+x.wind
+        )+
+        " kW";
+
+
+    /* Battery state */
+
+    if(x.battery < -0.1){
+
+        $("batteryState").textContent =
+            "CHARGING";
+
+    }else if(x.battery > 0.1){
+
+        $("batteryState").textContent =
+            "DISCHARGING";
+
+    }else{
+
+        $("batteryState").textContent =
+            "STANDBY";
+
+    }
+
+
+    /* Operating message */
+
+    if(x.grid > 0){
+
+        $("liveMessage").textContent =
+            "Utility grid is supplying the remaining load demand.";
+
+        $("liveMessage").className =
+            "alert alert-warning";
+
+    }else if(x.grid < 0){
+
+        $("liveMessage").textContent =
+            "Renewable surplus is being exported to the utility grid.";
+
+        $("liveMessage").className =
+            "alert alert-ok";
+
+    }else{
+
+        $("liveMessage").textContent =
+            "Local renewable generation and battery storage are balancing the load.";
+
+        $("liveMessage").className =
+            "alert alert-ok";
+
+    }
+
+}
+
+
+/* =========================================================
+   STOP ANIMATION
+========================================================= */
+
+function stopAnimation(){
+
+    if(animationTimer){
+
+        clearInterval(
+            animationTimer
+        );
+
+        animationTimer = null;
+
+    }
+
+}
+
+
+/* =========================================================
+   FAULT CONTROL
+========================================================= */
+
+function toggleFault(type){
+
+    faults[type] =
+        !faults[type];
+
+
+    const buttonMap = {
+
+        pv:"pvFaultBtn",
+        wind:"windFaultBtn",
+        battery:"batFaultBtn",
+        grid:"gridFaultBtn"
+
+    };
+
+
+    const button =
+        $(buttonMap[type]);
+
+
+    if(faults[type]){
+
+        button.textContent =
+            "FAULT";
+
+        button.classList.add(
+            "danger"
+        );
+
+    }else{
+
+        button.textContent =
+            "NORMAL";
+
+        button.classList.remove(
+            "danger"
+        );
+
+    }
+
+
+    updateFaultMessage();
+
+    simulate();
+
+}
+
+
+/* =========================================================
+   FAULT MESSAGE
+========================================================= */
+
+function updateFaultMessage(){
+
+    const active =
+        Object.keys(faults)
+        .filter(
+            key=>faults[key]
+        );
+
+
+    if(active.length===0){
+
+        $("faultMessage").textContent =
+            "No faults applied.";
+
+        $("faultMessage").className =
+            "alert alert-ok";
+
+        return;
+
+    }
+
+
+    $("faultMessage").textContent =
+        "Active contingency: "+
+        active.join(", ")
+        .toUpperCase()+
+        ". The 24-hour simulation has been recalculated.";
+
+    $("faultMessage").className =
+        "alert alert-warning";
+
+}
+
+
+/* =========================================================
+   HIGH RENEWABLE PRESET
+========================================================= */
+
+function highRenewable(){
+
+    $("pv").value = 110;
+    $("wind").value = 90;
+
+    $("bat").value = 300;
+    $("batPower").value = 100;
+
+    $("soc").value = 60;
+
+
+    controls.forEach(c=>{
+
+        $(c[1]).textContent =
+            $(c[0]).value+
+            c[2];
+
+    });
+
+
+    simulate();
+
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+function resetAll(){
+
+    stopAnimation();
+
+
+    Object.keys(faults)
+    .forEach(
+        key=>{
+            faults[key]=false;
+        }
+    );
+
+
+    $("pvFaultBtn").textContent =
+        "NORMAL";
+
+    $("windFaultBtn").textContent =
+        "NORMAL";
+
+    $("batFaultBtn").textContent =
+        "NORMAL";
+
+    $("gridFaultBtn").textContent =
+        "NORMAL";
+
+
+    $("pv").value = 60;
+    $("wind").value = 50;
+
+    $("bat").value = 150;
+    $("batPower").value = 60;
+
+    $("soc").value = 55;
+    $("load").value = 55;
+
+    $("etaC").value = 94;
+    $("etaD").value = 94;
+
+
+    $("mode").value =
+        "normal";
+
+
+    controls.forEach(c=>{
+
+        $(c[1]).textContent =
+            $(c[0]).value+
+            c[2];
+
+    });
+
+
+    updateFaultMessage();
+
+    simulate();
+
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    ()=>{
+        if(data.length){
+            drawCharts();
+        }
+    }
+);
+
+
+/* =========================================================
+   INITIAL RUN
+========================================================= */
+
+simulate();
+
+</script>
+
+</body>
+</html>
